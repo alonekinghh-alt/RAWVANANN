@@ -1,0 +1,1852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>இராவணன் - Smart Predictor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #05050a;
+            --surface: rgba(15, 20, 30, 0.6);
+            --primary: #00d4ff;
+            --secondary: #b829dd;
+            --accent: #00ff88;
+            --red: #ff3366;
+            --green: #00ff88;
+            --gold: #ffd700;
+            --big-color: #f59e0b;
+            --small-color: #3b82f6;
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --font-main: 'Rajdhani', sans-serif;
+            --font-display: 'Orbitron', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: var(--font-main);
+            background: var(--bg-dark);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(0, 212, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(184, 41, 221, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(0, 255, 136, 0.05) 0%, transparent 30%);
+            z-index: -1;
+            animation: bgPulse 8s ease-in-out infinite;
+        }
+
+        @keyframes bgPulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        /* === SMART HEADER === */
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            border-radius: 2px;
+        }
+
+        .header h1 {
+            font-family: var(--font-display);
+            font-size: 2.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff 0%, var(--primary) 50%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 4px;
+            text-shadow: 0 0 40px rgba(0, 212, 255, 0.3);
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes titleGlow {
+            from { filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.4)); }
+            to { filter: drop-shadow(0 0 30px rgba(184, 41, 221, 0.4)); }
+        }
+
+        /* === COMPACT TOP ROW === */
+        .compact-top-row {
+            display: grid;
+            grid-template-columns: auto 1fr 1fr;
+            gap: 12px;
+            align-items: center;
+            padding: 14px 16px;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 212, 255, 0.05));
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 16px;
+            margin-bottom: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 255, 136, 0.1);
+        }
+
+        .live-dot-only {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 12px var(--accent);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.8); opacity: 0.5; }
+        }
+
+        .period-countdown-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 0 10px;
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .period-text-compact {
+            font-size: 0.85rem;
+            color: #fff;
+            font-weight: 700;
+            font-family: var(--font-display);
+            letter-spacing: 1px;
+        }
+
+        .countdown-below {
+            font-size: 0.75rem;
+            color: var(--accent);
+            font-weight: 700;
+            font-family: var(--font-display);
+            text-shadow: 0 0 8px rgba(0, 255, 136, 0.3);
+        }
+
+        .countdown-below.warning {
+            color: #ff9500;
+            text-shadow: 0 0 8px rgba(255, 149, 0, 0.4);
+        }
+
+        .countdown-below.danger {
+            color: #ff3366;
+            text-shadow: 0 0 8px rgba(255, 51, 102, 0.4);
+            animation: urgentPulse 0.5s infinite alternate;
+        }
+
+        @keyframes urgentPulse {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0.7; transform: scale(1.05); }
+        }
+
+        .target-number-compact {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .target-label-compact {
+            font-size: 0.65rem;
+            color: #888;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .target-value-compact {
+            font-family: var(--font-display);
+            font-size: 2.2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff 0%, var(--gold) 50%, #fff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.5));
+            line-height: 1;
+        }
+
+        .target-value-compact.skip {
+            font-size: 1.4rem;
+            background: linear-gradient(135deg, #fff, #ff9500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* === SIZE COLOR ROW === */
+        .size-color-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .prediction-box {
+            text-align: center;
+            padding: 18px 12px;
+            background: var(--surface);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .prediction-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--primary), transparent);
+            opacity: 0.5;
+        }
+
+        .prediction-box.color-box::before {
+            background: linear-gradient(90deg, var(--secondary), transparent);
+        }
+
+        .prediction-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        /* SIZE WIN - GREEN */
+        .prediction-box.size-win {
+            border-color: rgba(0, 255, 136, 0.5);
+            box-shadow: 0 8px 32px rgba(0, 255, 136, 0.3), inset 0 0 20px rgba(0, 255, 136, 0.1);
+            animation: sizeWinPulse 2s ease-in-out infinite;
+        }
+
+        .prediction-box.size-win::before {
+            background: linear-gradient(90deg, var(--green), transparent);
+            opacity: 1;
+        }
+
+        @keyframes sizeWinPulse {
+            0%, 100% { box-shadow: 0 8px 32px rgba(0, 255, 136, 0.3), inset 0 0 20px rgba(0, 255, 136, 0.1); }
+            50% { box-shadow: 0 8px 40px rgba(0, 255, 136, 0.5), inset 0 0 30px rgba(0, 255, 136, 0.2); }
+        }
+
+        /* SIZE LOSS - RED */
+        .prediction-box.size-loss {
+            border-color: rgba(255, 51, 102, 0.5);
+            box-shadow: 0 8px 32px rgba(255, 51, 102, 0.3), inset 0 0 20px rgba(255, 51, 102, 0.1);
+            animation: sizeLossShake 0.5s ease-in-out;
+        }
+
+        .prediction-box.size-loss::before {
+            background: linear-gradient(90deg, var(--red), transparent);
+            opacity: 1;
+        }
+
+        @keyframes sizeLossShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
+        }
+
+        /* COLOR WIN - Same color glow */
+        .prediction-box.color-win-red {
+            border-color: rgba(255, 51, 102, 0.5);
+            box-shadow: 0 8px 32px rgba(255, 51, 102, 0.3), inset 0 0 20px rgba(255, 51, 102, 0.1);
+            animation: colorRedWinPulse 2s ease-in-out infinite;
+        }
+
+        .prediction-box.color-win-red::before {
+            background: linear-gradient(90deg, var(--red), transparent);
+            opacity: 1;
+        }
+
+        @keyframes colorRedWinPulse {
+            0%, 100% { box-shadow: 0 8px 32px rgba(255, 51, 102, 0.3), inset 0 0 20px rgba(255, 51, 102, 0.1); }
+            50% { box-shadow: 0 8px 40px rgba(255, 51, 102, 0.5), inset 0 0 30px rgba(255, 51, 102, 0.2); }
+        }
+
+        .prediction-box.color-win-green {
+            border-color: rgba(0, 255, 136, 0.5);
+            box-shadow: 0 8px 32px rgba(0, 255, 136, 0.3), inset 0 0 20px rgba(0, 255, 136, 0.1);
+            animation: colorGreenWinPulse 2s ease-in-out infinite;
+        }
+
+        .prediction-box.color-win-green::before {
+            background: linear-gradient(90deg, var(--green), transparent);
+            opacity: 1;
+        }
+
+        @keyframes colorGreenWinPulse {
+            0%, 100% { box-shadow: 0 8px 32px rgba(0, 255, 136, 0.3), inset 0 0 20px rgba(0, 255, 136, 0.1); }
+            50% { box-shadow: 0 8px 40px rgba(0, 255, 136, 0.5), inset 0 0 30px rgba(0, 255, 136, 0.2); }
+        }
+
+        /* COLOR LOSS - RED */
+        .prediction-box.color-loss {
+            border-color: rgba(255, 51, 102, 0.5);
+            box-shadow: 0 8px 32px rgba(255, 51, 102, 0.3), inset 0 0 20px rgba(255, 51, 102, 0.1);
+            animation: colorLossShake 0.5s ease-in-out;
+        }
+
+        .prediction-box.color-loss::before {
+            background: linear-gradient(90deg, var(--red), transparent);
+            opacity: 1;
+        }
+
+        @keyframes colorLossShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
+        }
+
+        .pred-label {
+            font-size: 0.7rem;
+            color: #888;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .pred-result {
+            font-family: var(--font-display);
+            font-size: 1.6rem;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+        }
+
+        .pred-BIG {
+            background: linear-gradient(135deg, #fff, var(--big-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.4));
+        }
+
+        .pred-SMALL {
+            background: linear-gradient(135deg, #fff, var(--small-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.4));
+        }
+
+        .pred-RED {
+            background: linear-gradient(135deg, #fff, var(--red));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px rgba(255, 51, 102, 0.4));
+        }
+
+        .pred-GREEN {
+            background: linear-gradient(135deg, #fff, var(--green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.4));
+        }
+
+        .pred-SKIP {
+            background: linear-gradient(135deg, #fff, #ff9500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px rgba(255, 149, 0, 0.4));
+            font-size: 1.4rem;
+        }
+
+        .logic-display {
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.7rem;
+        }
+
+        .logic-text {
+            color: var(--primary);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            line-height: 1.3;
+        }
+
+        .pattern-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background: rgba(184, 41, 221, 0.2);
+            border-radius: 12px;
+            font-size: 0.65rem;
+            color: var(--secondary);
+            margin-top: 6px;
+            font-weight: 700;
+            border: 1px solid rgba(184, 41, 221, 0.3);
+        }
+
+        .pattern-badge.skip {
+            background: rgba(255, 149, 0, 0.2);
+            color: #ff9500;
+            border-color: rgba(255, 149, 0, 0.3);
+        }
+
+        .penalty-indicator {
+            font-size: 0.65rem;
+            color: #ff9500;
+            margin-top: 4px;
+            font-weight: 600;
+            opacity: 0.8;
+        }
+
+        .debug-info {
+            font-size: 0.6rem;
+            color: #555;
+            margin-top: 4px;
+            font-family: monospace;
+        }
+
+        .spinner {
+            width: 35px; height: 35px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 8px auto;
+        }
+
+        .spinner.gold {
+            border-top-color: var(--gold);
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* === RECENT RESULTS SECTION === */
+        .recent-results-section {
+            margin-top: 5px;
+        }
+
+        .recent-results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 0 4px;
+        }
+
+        .recent-results-title {
+            font-size: 0.75rem;
+            color: #888;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .recent-results-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 2px;
+        }
+
+        .recent-results-list::-webkit-scrollbar {
+            width: 3px;
+        }
+        .recent-results-list::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+
+        .recent-result-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            border-left: 3px solid transparent;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .recent-result-item:hover {
+            transform: translateX(3px);
+            border-color: rgba(255,255,255,0.12);
+        }
+
+        /* WIN - Green with glow animation */
+        .recent-result-item.item-win {
+            border-left-color: var(--green);
+            background: linear-gradient(90deg, rgba(0,255,136,0.1), var(--surface));
+            animation: winGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes winGlow {
+            0%, 100% { box-shadow: 0 0 5px rgba(0,255,136,0.2); }
+            50% { box-shadow: 0 0 15px rgba(0,255,136,0.4); }
+        }
+
+        .recent-result-item.item-win .result-text {
+            color: var(--green);
+            text-shadow: 0 0 8px rgba(0,255,136,0.4);
+            animation: winTextPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes winTextPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        /* LOSS - Red with shake animation */
+        .recent-result-item.item-loss {
+            border-left-color: var(--red);
+            background: linear-gradient(90deg, rgba(255,51,102,0.1), var(--surface));
+        }
+
+        .recent-result-item.item-loss .result-text {
+            color: var(--red);
+            text-shadow: 0 0 8px rgba(255,51,102,0.4);
+            animation: lossShake 0.5s ease-in-out;
+        }
+
+        @keyframes lossShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
+        }
+
+        /* SKIP - Orange */
+        .recent-result-item.item-skip {
+            border-left-color: #ff9500;
+            background: linear-gradient(90deg, rgba(255,149,0,0.1), var(--surface));
+        }
+
+        .recent-result-item.item-skip .result-text {
+            color: #ff9500;
+        }
+
+        .result-period {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            color: #666;
+            font-weight: 700;
+            min-width: 45px;
+        }
+
+        .result-actual {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .result-number {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: #fff;
+        }
+
+        .result-size {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .result-size.big {
+            color: var(--big-color);
+        }
+
+        .result-size.small {
+            color: var(--small-color);
+        }
+
+        .result-color {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .result-color.red {
+            color: var(--red);
+        }
+
+        .result-color.green {
+            color: var(--green);
+        }
+
+        .result-status {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-width: 35px;
+            text-align: right;
+        }
+
+        /* === TAB BAR === */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 500px;
+            background: rgba(10, 10, 20, 0.95);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 12px 0 20px 0;
+            z-index: 1000;
+            backdrop-filter: blur(30px);
+        }
+
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            padding: 8px 20px;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            color: #555;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .tab-item i { 
+            font-size: 1.3rem; 
+            transition: all 0.3s ease;
+        }
+
+        .tab-item:hover {
+            color: #888;
+            background: rgba(255,255,255,0.03);
+        }
+
+        .tab-item.active { 
+            background: linear-gradient(135deg, rgba(184, 41, 221, 0.2), rgba(0, 212, 255, 0.1)); 
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(184, 41, 221, 0.2);
+        }
+
+        .tab-item.active i { 
+            color: var(--secondary);
+            filter: drop-shadow(0 0 8px rgba(184, 41, 221, 0.5));
+        }
+
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* === HISTORY PAGE === */
+        .compact-header {
+            margin-bottom: 20px !important;
+        }
+        .compact-header h1 {
+            font-size: 1.5rem !important;
+            letter-spacing: 4px !important;
+        }
+
+        .history-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 0 4px;
+        }
+
+        .history-title {
+            font-size: 0.8rem;
+            color: #888;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .win-rate-mini {
+            font-size: 0.85rem;
+            color: var(--accent);
+            font-weight: 700;
+            font-family: var(--font-display);
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stats-card-mini {
+            background: var(--surface);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 12px 8px;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .stats-card-mini:hover {
+            border-color: rgba(255,255,255,0.15);
+            transform: translateY(-2px);
+        }
+
+        .stats-card-mini::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+        }
+
+        .stats-card-mini.size-card::before { background: var(--primary); }
+        .stats-card-mini.color-card::before { background: var(--secondary); }
+        .stats-card-mini.number-card::before { background: var(--gold); }
+
+        .stats-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 10px;
+            font-size: 0.7rem;
+            color: #888;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stats-card-header i { font-size: 0.8rem; }
+        .stats-card-header.size { color: var(--primary); }
+        .stats-card-header.color { color: var(--secondary); }
+        .stats-card-header.number { color: var(--gold); }
+
+        .stats-mini-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+        }
+
+        .stat-micro {
+            text-align: center;
+            padding: 6px 2px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .stat-micro:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .stat-micro-value {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 2px;
+        }
+
+        .stat-micro-value.win { color: #00ff88; }
+        .stat-micro-value.loss { color: #ff3366; }
+        .stat-micro-value.skip { color: #ff9500; }
+        .stat-micro-value.total { color: #00d4ff; }
+        .stat-micro-value.hit { color: #ffd700; }
+        .stat-micro-value.miss { color: #ff3366; }
+
+        .stat-micro-label {
+            font-size: 0.5rem;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+        }
+
+        .wl-history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 65vh;
+            overflow-y: auto;
+            padding-right: 2px;
+        }
+
+        .wl-history-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .wl-history-list::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+
+        .wl-history-item {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            padding: 12px 14px;
+            background: var(--surface);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            border-left: 3px solid transparent;
+            position: relative;
+            transition: all 0.3s ease;
+            min-height: 60px;
+            backdrop-filter: blur(10px);
+        }
+
+        .wl-history-item:hover {
+            border-color: rgba(255,255,255,0.12);
+            transform: translateX(3px);
+        }
+
+        .wl-history-item.item-win { 
+            border-left-color: #00ff88; 
+            background: linear-gradient(90deg, rgba(0,255,136,0.08), var(--surface));
+        }
+        .wl-history-item.item-loss { 
+            border-left-color: #ff3366; 
+            background: linear-gradient(90deg, rgba(255,51,102,0.08), var(--surface));
+        }
+        .wl-history-item.item-skip { 
+            border-left-color: #ff9500; 
+            background: linear-gradient(90deg, rgba(255,149,0,0.08), var(--surface));
+        }
+
+        .wl-item-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 6px;
+            min-width: 0;
+            padding-left: 10px;
+        }
+
+        .wl-item-top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: nowrap;
+        }
+
+        .wl-item-title { 
+            font-family: var(--font-display);
+            font-size: 0.8rem; 
+            font-weight: 700; 
+            color: #999;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+            min-width: 50px;
+        }
+
+        .wl-pred-wrap {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            min-width: 60px;
+        }
+
+        .wl-pred-label {
+            font-size: 0.65rem;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .wl-item-number {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 900;
+            color: var(--gold);
+            min-width: 22px;
+            text-align: center;
+        }
+
+        .wl-item-number.empty {
+            color: #444;
+            font-size: 0.85rem;
+        }
+
+        .wl-results-row {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .wl-result-pill {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.6rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid transparent;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .wl-result-pill.win { background: rgba(0,255,136,0.15); color: #00ff88; border-color: rgba(0,255,136,0.3); }
+        .wl-result-pill.loss { background: rgba(255,51,102,0.15); color: #ff3366; border-color: rgba(255,51,102,0.3); }
+        .wl-result-pill.skip { background: rgba(255,149,0,0.15); color: #ff9500; border-color: rgba(255,149,0,0.3); }
+        .wl-result-pill.hit { background: rgba(255,215,0,0.15); color: #ffd700; border-color: rgba(255,215,0,0.3); }
+
+        .wl-item-bottom {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.8rem;
+            color: #777;
+            font-weight: 500;
+            padding-left: 50px;
+        }
+
+        .wl-actual-label {
+            font-size: 0.65rem;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .wl-actual-result {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .wl-actual-num {
+            font-family: var(--font-display);
+            font-weight: 700;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+
+        .wl-actual-size, .wl-actual-color {
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        .wl-item-time {
+            font-size: 0.65rem;
+            color: #444;
+            font-family: var(--font-display);
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+            align-self: flex-start;
+            margin-top: 2px;
+            margin-left: 10px;
+        }
+
+        .empty-state {
+            text-align: center; 
+            color: #444; 
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .empty-state i {
+            font-size: 2rem;
+            opacity: 0.3;
+        }
+        .empty-state span {
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+    </style>
+<base target="_blank">
+</head>
+<body>
+    <div class="page active" id="page-tool">
+        <div class="container">
+            <div class="header">
+                <h1>இராவணன்</h1>
+            </div>
+
+            <!-- COMPACT TOP ROW: Live Dot + Period/Countdown + Target Number -->
+            <div class="compact-top-row">
+                <div class="live-dot-only"></div>
+                
+                <div class="period-countdown-box">
+                    <div class="period-text-compact" id="periodDisplay">----</div>
+                    <div class="countdown-below" id="countdownDisplay">--s</div>
+                </div>
+                
+                <div class="target-number-compact">
+                    <div class="target-label-compact">Target</div>
+                    <div id="targetLoadingView">
+                        <div class="spinner gold" style="width: 25px; height: 25px; margin: 0;"></div>
+                    </div>
+                    <div id="targetResultView" style="display: none;">
+                        <div class="target-value-compact" id="targetNumberDisplay">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SIZE & COLOR ROW -->
+            <div class="size-color-row">
+                <div class="prediction-box" id="sizeBox">
+                    <div class="pred-label">Size</div>
+                    <div id="sizeLoadingView">
+                        <div class="spinner"></div>
+                    </div>
+                    <div id="sizeResultView" style="display: none;">
+                        <div class="pred-result" id="sizePrediction">--</div>
+                        <div class="logic-display">
+                            <div class="logic-text" id="sizeLogic">--</div>
+                            <div class="pattern-badge" id="sizeBadge" style="display: none;"></div>
+                            <div class="penalty-indicator" id="sizePenalty"></div>
+                            <div class="debug-info" id="sizeDebug"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="prediction-box color-box" id="colorBox">
+                    <div class="pred-label">Color</div>
+                    <div id="colorLoadingView">
+                        <div class="spinner"></div>
+                    </div>
+                    <div id="colorResultView" style="display: none;">
+                        <div class="pred-result" id="colorPrediction">--</div>
+                        <div class="logic-display">
+                            <div class="logic-text" id="colorLogic">--</div>
+                            <div class="pattern-badge" id="colorBadge" style="display: none;"></div>
+                            <div class="penalty-indicator" id="colorPenalty"></div>
+                            <div class="debug-info" id="colorDebug"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RECENT RESULTS (Actual Only) with Win/Loss Animation -->
+            <div class="recent-results-section">
+                <div class="recent-results-header">
+                    <span class="recent-results-title">Recent Results</span>
+                </div>
+                <div class="recent-results-list" id="recentResultsList">
+                    <div class="empty-state" style="padding: 20px;">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span>Waiting for results...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page" id="page-wl">
+        <div class="container" style="padding-top:15px;">
+            <div class="header compact-header">
+                <h1>HISTORY</h1>
+            </div>
+
+            <div class="stats-row">
+                <div class="stats-card-mini size-card">
+                    <div class="stats-card-header size">
+                        <i class="fa-solid fa-expand"></i> Size
+                    </div>
+                    <div class="stats-mini-grid">
+                        <div class="stat-micro">
+                            <div class="stat-micro-value win" id="size-wins">0</div>
+                            <div class="stat-micro-label">Win</div>
+                        </div>
+                        <div class="stat-micro">
+                            <div class="stat-micro-value loss" id="size-losses">0</div>
+                            <div class="stat-micro-label">Loss</div>
+                        </div>
+                        <div class="stat-micro">
+                            <div class="stat-micro-value skip" id="size-skips">0</div>
+                            <div class="stat-micro-label">Skip</div>
+                        </div>
+                        <div class="stat-micro">
+                            <div class="stat-micro-value total" id="size-total">0</div>
+                            <div class="stat-micro-label">Total</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-card-mini color-card">
+                    <div class="stats-card-header color">
+                        <i class="fa-solid fa-palette"></i> Color
+                    </div>
+                    <div class="stats-mini-grid">
+                        <div class="stat-micro">
+                            <div class="stat-micro-value win" id="color-wins">0</div>
+                            <div class="stat-micro-label">Win</div>
+                        </div>
+                        <div class="stat-micro">
+                            <div class="stat-micro-value loss" id="color-losses">0</div>
+                            <div class="stat-micro-label">Loss</div>
+                        </div>
+                        <div class="stat-micro">
+                            <div class="stat-micro-value skip" id="color-skips">0</div>
+                            <div class="stat-micro-label">Skip</div>
+                        </div>
+                        <div class="stat-micro">
+                            <div class="stat-micro-value total" id="color-total">0</div>
+                            <div class="stat-micro-label">Total</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-card-mini number-card">
+                    <div class="stats-card-header number">
+                        <i class="fa-solid fa-hashtag"></i> Num
+                    </div>
+                    <div class="stats-mini-grid">
+                        <div class="stat-micro">
+                            <div class="stat-micro-value hit" id="num-hits">0</div>
+                            <div class="stat-micro-label">Hit</div>
+                        </div>
+                        <div class="stat-micro">
+                            <div class="stat-micro-value miss" id="num-misses">0</div>
+                            <div class="stat-micro-label">Miss</div>
+                        </div>
+                        <div class="stat-micro">
+                            <div class="stat-micro-value skip" id="num-skips">0</div>
+                            <div class="stat-micro-label">Skip</div>
+                        </div>
+                        <div class="stat-micro">
+                            <div class="stat-micro-value total" id="num-total">0</div>
+                            <div class="stat-micro-label">Total</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-header-row">
+                <span class="history-title">Recent Activity</span>
+                <span class="win-rate-mini" id="win-rate-display">0% WR</span>
+            </div>
+
+            <div class="wl-history-list" id="wl-history-list">
+                <div class="empty-state">
+                    <i class="fa-solid fa-chart-simple"></i>
+                    <span>No History</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="tab-bar">
+        <div class="tab-item active" id="tab-tool" onclick="switchTab('tool')">
+            <i class="fa-solid fa-bullseye"></i>
+            Predict
+        </div>
+        <div class="tab-item" id="tab-wl" onclick="switchTab('wl')">
+            <i class="fa-solid fa-chart-line"></i>
+            History
+        </div>
+    </nav>
+
+    <script>
+        const API = "https://draw.ar-lottery01.com/WinGo/WinGo_30S/GetHistoryIssuePage.json";
+
+        let state = {
+            period: null,
+            lastResult: null,
+            currentPrediction: null,
+            numberHistory: [],
+            lastFetchedIssue: null
+        };
+
+        let penaltyTracker = {
+            size: 0,
+            color: 0
+        };
+
+        let wlData = {
+            size: { wins: 0, losses: 0, skips: 0, total: 0 },
+            color: { wins: 0, losses: 0, skips: 0, total: 0 },
+            number: { hits: 0, misses: 0, skips: 0, total: 0 },
+            overall: { wins: 0, losses: 0, skips: 0, total: 0 },
+            history: []
+        };
+
+        // Store recent results for main page display
+        let recentResults = [];
+
+        // Store last prediction results for color coding
+        let lastPredictionResults = {
+            sizeResult: null,
+            colorResult: null,
+            sizePred: null,
+            colorPred: null
+        };
+
+        function updateCountdown() {
+            const now = new Date();
+            const seconds = now.getSeconds();
+            const ms = now.getMilliseconds();
+            
+            let remaining;
+            if (seconds < 30) {
+                remaining = 30 - seconds - (ms / 1000);
+            } else {
+                remaining = 60 - seconds - (ms / 1000);
+            }
+            
+            const display = document.getElementById('countdownDisplay');
+            if (display) {
+                const rounded = Math.ceil(remaining);
+                display.innerText = `${rounded}s`;
+                
+                display.classList.remove('warning', 'danger');
+                if (rounded <= 5) {
+                    display.classList.add('danger');
+                } else if (rounded <= 10) {
+                    display.classList.add('warning');
+                }
+            }
+        }
+
+        setInterval(updateCountdown, 200);
+        updateCountdown();
+
+        function getSize(num) {
+            return num >= 5 ? 'BIG' : 'SMALL';
+        }
+
+        function getColor(colorStr) {
+            if (!colorStr || typeof colorStr !== 'string') return 'RED';
+            const lower = colorStr.toLowerCase();
+            if (lower.includes('green')) return 'GREEN';
+            return 'RED';
+        }
+
+        function getCandidateNumbers(size, color) {
+            if (size === 'SKIP' || color === 'SKIP') return [];
+            if (size === 'SMALL' && color === 'RED') return [0, 2, 4];
+            if (size === 'SMALL' && color === 'GREEN') return [1, 3];
+            if (size === 'BIG' && color === 'RED') return [6, 8];
+            if (size === 'BIG' && color === 'GREEN') return [5, 7, 9];
+            return [];
+        }
+
+        function findMostOverdue(candidates, history) {
+            if (!history.length || candidates.length === 0) return null;
+            let maxGap = -1;
+            let selectedNumber = candidates[0];
+
+            candidates.forEach(num => {
+                let gap = 0;
+                let found = false;
+                for (let i = 0; i < history.length; i++) {
+                    if (parseInt(history[i].number) === num) {
+                        found = true;
+                        break;
+                    }
+                    gap++;
+                }
+                if (!found) gap = 999;
+                if (gap > maxGap) {
+                    maxGap = gap;
+                    selectedNumber = num;
+                }
+            });
+            return { number: selectedNumber, gap: maxGap };
+        }
+
+        // SIZE PATTERN ANALYSIS
+        function analyzeSizePatterns(arr, penalty) {
+            if (!arr || arr.length < 4) {
+                if (arr && arr.length > 0) {
+                    return { type: 'FOLLOW', priority: 4, prediction: arr[0], description: `Follow Last: ${arr[0]}` };
+                }
+                return null;
+            }
+            
+            const s0 = arr[0], s1 = arr[1], s2 = arr[2], s3 = arr[3], s4 = arr[4], s5 = arr[5];
+
+            // ABABBA Pattern - Highest Priority
+            if (arr.length >= 6) {
+                const isABABBA = (s5 === s3) && (s3 === s1) && 
+                                 (s4 === s2) && (s4 !== s5) && 
+                                 (s0 !== s5);
+                
+                if (isABABBA) {
+                    return { 
+                        type: 'ABABBA', 
+                        priority: 0, 
+                        prediction: s4,
+                        description: 'ABABBA Pattern → B follows' 
+                    };
+                }
+            }
+
+            // ABABB Pattern
+            if (arr.length >= 5) {
+                const isABABB = (s4 === s2) && (s3 === s1) && (s1 === s0) && (s4 !== s3);
+                if (isABABB && penalty < 3) {
+                    return { type: 'ABABB', priority: 1, prediction: 'SKIP', description: 'ABABB + penalty<3 → SKIP' };
+                }
+            }
+
+            const isSBSB = (s3 === 'SMALL' && s2 === 'BIG' && s1 === 'SMALL' && s0 === 'BIG');
+            if (isSBSB) return { type: 'SBSB', priority: 2, prediction: 'SMALL', description: 'S-B-S-B → SMALL' };
+
+            const isBSBS = (s3 === 'BIG' && s2 === 'SMALL' && s1 === 'BIG' && s0 === 'SMALL');
+            if (isBSBS) return { type: 'BSBS', priority: 3, prediction: 'BIG', description: 'B-S-B-S → BIG' };
+
+            const isAABA = (s3 === s2) && (s2 !== s1) && (s1 !== s0) && (s3 === s0);
+            if (isAABA) return { type: 'AABA', priority: 5, prediction: 'SKIP', description: 'AABA → SKIP' };
+
+            return { type: 'FOLLOW', priority: 4, prediction: s0, description: `No pattern → Follow Last: ${s0}` };
+        }
+
+        // COLOR PATTERN ANALYSIS
+        function analyzeColorPatterns(arr, penalty) {
+            if (!arr || arr.length < 4) {
+                if (arr && arr.length > 0) {
+                    return { type: 'FOLLOW', priority: 4, prediction: arr[0], description: `Follow Last: ${arr[0]}` };
+                }
+                return null;
+            }
+            
+            const c0 = arr[0], c1 = arr[1], c2 = arr[2], c3 = arr[3], c4 = arr[4], c5 = arr[5];
+
+            // ABABBA Pattern
+            if (arr.length >= 6) {
+                const isABABBA = (c5 === c3) && (c3 === c1) && 
+                                 (c4 === c2) && (c4 !== c5) && 
+                                 (c0 !== c5);
+                
+                if (isABABBA) {
+                    return { 
+                        type: 'ABABBA', 
+                        priority: 0, 
+                        prediction: c4,
+                        description: 'ABABBA Pattern → B follows' 
+                    };
+                }
+            }
+
+            // ABABB Pattern
+            if (arr.length >= 5) {
+                const isABABB = (c4 === c2) && (c3 === c1) && (c1 === c0) && (c4 !== c3);
+                if (isABABB && penalty < 3) {
+                    return { type: 'ABABB', priority: 1, prediction: 'SKIP', description: 'ABABB + penalty<3 → SKIP' };
+                }
+            }
+
+            const isRGRG = (c3 === 'RED' && c2 === 'GREEN' && c1 === 'RED' && c0 === 'GREEN');
+            if (isRGRG) return { type: 'RGRG', priority: 2, prediction: 'RED', description: 'R-G-R-G → RED' };
+
+            const isGRGR = (c3 === 'GREEN' && c2 === 'RED' && c1 === 'GREEN' && c0 === 'RED');
+            if (isGRGR) return { type: 'GRGR', priority: 3, prediction: 'GREEN', description: 'G-R-G-R → GREEN' };
+
+            const isAABA = (c3 === c2) && (c2 !== c1) && (c1 !== c0) && (c3 === c0);
+            if (isAABA) return { type: 'AABA', priority: 5, prediction: 'SKIP', description: 'AABA → SKIP' };
+
+            return { type: 'FOLLOW', priority: 4, prediction: c0, description: `No pattern → Follow Last: ${c0}` };
+        }
+
+        function processPrediction(data) {
+            if (!data || data.length < 2) return null;
+            const numbers = data.map(i => parseInt(i.number));
+            const sizes = numbers.map(getSize);
+            const colors = data.map(i => getColor(i.color));
+
+            const lastNumber = numbers[0];
+            const lastSize = sizes[0];
+            const lastColor = colors[0];
+
+            const sizePred = analyzeSizePatterns(sizes, penaltyTracker.size);
+            const colorPred = analyzeColorPatterns(colors, penaltyTracker.color);
+
+            const candidates = getCandidateNumbers(sizePred.prediction, colorPred.prediction);
+            let singleNumber = null;
+            let numberGap = 0;
+            let alternates = [];
+
+            if (candidates.length > 0) {
+                const overdue = findMostOverdue(candidates, data);
+                if (overdue) {
+                    singleNumber = overdue.number;
+                    numberGap = overdue.gap;
+                    alternates = candidates.filter(n => n !== singleNumber);
+                }
+            }
+
+            return {
+                lastNumber, lastSize, lastColor,
+                sizePred, colorPred,
+                singleNumber, numberGap, alternates,
+                candidates, sizes, colors
+            };
+        }
+
+        function updateBoxColors() {
+            const sizeBox = document.getElementById('sizeBox');
+            const colorBox = document.getElementById('colorBox');
+            
+            // Reset classes
+            sizeBox.classList.remove('size-win', 'size-loss');
+            colorBox.classList.remove('color-win-red', 'color-win-green', 'color-loss');
+            
+            // Apply size result color
+            if (lastPredictionResults.sizeResult === 'WIN') {
+                sizeBox.classList.add('size-win');
+            } else if (lastPredictionResults.sizeResult === 'LOSS') {
+                sizeBox.classList.add('size-loss');
+            }
+            
+            // Apply color result color
+            if (lastPredictionResults.colorResult === 'WIN') {
+                if (lastPredictionResults.colorPred === 'RED') {
+                    colorBox.classList.add('color-win-red');
+                } else if (lastPredictionResults.colorPred === 'GREEN') {
+                    colorBox.classList.add('color-win-green');
+                }
+            } else if (lastPredictionResults.colorResult === 'LOSS') {
+                colorBox.classList.add('color-loss');
+            }
+        }
+
+        function updateUI(analysis) {
+            state.numberHistory = analysis.candidates;
+
+            // Update compact top row
+            document.getElementById('targetLoadingView').style.display = 'none';
+            document.getElementById('targetResultView').style.display = 'block';
+            
+            const targetNum = analysis.singleNumber !== null ? analysis.singleNumber : 'SKIP';
+            const targetEl = document.getElementById('targetNumberDisplay');
+            targetEl.innerText = targetNum;
+            if (targetNum === 'SKIP') {
+                targetEl.classList.add('skip');
+            } else {
+                targetEl.classList.remove('skip');
+            }
+
+            // Size box
+            document.getElementById('sizeLoadingView').style.display = 'none';
+            document.getElementById('sizeResultView').style.display = 'block';
+
+            const sizePred = analysis.sizePred.prediction;
+            const sizeResEl = document.getElementById('sizePrediction');
+            sizeResEl.innerText = sizePred;
+            sizeResEl.className = 'pred-result pred-' + sizePred;
+
+            document.getElementById('sizeLogic').innerText = analysis.sizePred.description;
+            document.getElementById('sizeDebug').innerText = `Hist: ${analysis.sizes.slice(0, 6).join('-')}`;
+            document.getElementById('sizePenalty').innerText = `Penalty: ${penaltyTracker.size}`;
+
+            const sizeBadge = document.getElementById('sizeBadge');
+            sizeBadge.style.display = 'inline-block';
+            sizeBadge.innerText = `P${analysis.sizePred.priority}`;
+            sizeBadge.className = 'pattern-badge' + (sizePred === 'SKIP' ? ' skip' : '');
+
+            // Color box
+            document.getElementById('colorLoadingView').style.display = 'none';
+            document.getElementById('colorResultView').style.display = 'block';
+
+            const colorPred = analysis.colorPred.prediction;
+            const colorResEl = document.getElementById('colorPrediction');
+            colorResEl.innerText = colorPred;
+            colorResEl.className = 'pred-result pred-' + colorPred;
+
+            document.getElementById('colorLogic').innerText = analysis.colorPred.description;
+            document.getElementById('colorDebug').innerText = `Hist: ${analysis.colors.slice(0, 6).join('-')}`;
+            document.getElementById('colorPenalty').innerText = `Penalty: ${penaltyTracker.color}`;
+
+            const colorBadge = document.getElementById('colorBadge');
+            colorBadge.style.display = 'inline-block';
+            colorBadge.innerText = `P${analysis.colorPred.priority}`;
+            colorBadge.className = 'pattern-badge' + (colorPred === 'SKIP' ? ' skip' : '');
+
+            // Apply previous result colors
+            updateBoxColors();
+
+            state.currentPrediction = {
+                period: state.period,
+                sizePred: sizePred,
+                colorPred: colorPred,
+                singleNumber: analysis.singleNumber,
+                alternates: analysis.alternates,
+                actualSize: null,
+                actualColor: null,
+                actualNumber: null,
+                status: 'PENDING'
+            };
+        }
+
+        // Update recent results list on main page
+        function updateRecentResultsList() {
+            const listEl = document.getElementById('recentResultsList');
+            
+            if (!recentResults.length) {
+                listEl.innerHTML = `
+                    <div class="empty-state" style="padding: 20px;">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span>Waiting for results...</span>
+                    </div>`;
+                return;
+            }
+
+            listEl.innerHTML = recentResults.slice(0, 5).map((item) => {
+                const actualSize = item.actualSize;
+                const actualColor = item.actualColor;
+                const actualNumber = item.actualNumber;
+                
+                // Determine if it was a win based on prediction vs actual
+                let isWin = false;
+                let isSkip = false;
+                let statusText = 'LOSS';
+                
+                if (item.prediction && item.prediction.singleNumber !== null) {
+                    if (item.prediction.singleNumber === actualNumber) {
+                        isWin = true;
+                        statusText = 'WIN';
+                    }
+                } else {
+                    isSkip = true;
+                    statusText = 'SKIP';
+                }
+                
+                // Also check alternates
+                if (!isWin && item.prediction && item.prediction.alternates && item.prediction.alternates.includes(actualNumber)) {
+                    isWin = true;
+                    statusText = 'WIN';
+                }
+
+                let itemClass = isWin ? 'item-win' : (isSkip ? 'item-skip' : 'item-loss');
+                let sizeClass = actualSize === 'BIG' ? 'big' : 'small';
+                let colorClass = actualColor === 'RED' ? 'red' : 'green';
+
+                return `
+                <div class="recent-result-item ${itemClass}">
+                    <div class="result-period">#${item.period.slice(-4)}</div>
+                    <div class="result-actual">
+                        <span class="result-number">${actualNumber}</span>
+                        <span class="result-size ${sizeClass}">${actualSize}</span>
+                        <span class="result-color ${colorClass}">${actualColor}</span>
+                    </div>
+                    <div class="result-status result-text">${statusText}</div>
+                </div>`;
+            }).join('');
+        }
+
+        function updateHistory(actualSize, actualColor, actualNumber) {
+            if (!state.currentPrediction || state.currentPrediction.status !== 'PENDING') return;
+
+            const pred = state.currentPrediction;
+            pred.actualSize = actualSize;
+            pred.actualColor = actualColor;
+            pred.actualNumber = actualNumber;
+            pred.time = Date.now();
+
+            // Store results for color coding
+            lastPredictionResults.sizePred = pred.sizePred;
+            lastPredictionResults.colorPred = pred.colorPred;
+
+            // Add to recent results for main page
+            recentResults.unshift({
+                period: pred.period,
+                actualSize: actualSize,
+                actualColor: actualColor,
+                actualNumber: actualNumber,
+                prediction: {
+                    singleNumber: pred.singleNumber,
+                    alternates: pred.alternates
+                }
+            });
+            
+            // Keep only last 10 results
+            if (recentResults.length > 10) {
+                recentResults = recentResults.slice(0, 10);
+            }
+            
+            // Update recent results list on main page
+            updateRecentResultsList();
+
+            let sizeResult;
+            if (pred.sizePred === 'SKIP') {
+                sizeResult = 'SKIP';
+                wlData.size.skips++;
+            } else if (pred.sizePred === actualSize) {
+                sizeResult = 'WIN';
+                wlData.size.wins++;
+                penaltyTracker.size = 0;
+            } else {
+                sizeResult = 'LOSS';
+                wlData.size.losses++;
+                penaltyTracker.size++;
+            }
+            wlData.size.total++;
+
+            let colorResult;
+            if (pred.colorPred === 'SKIP') {
+                colorResult = 'SKIP';
+                wlData.color.skips++;
+            } else if (pred.colorPred === actualColor) {
+                colorResult = 'WIN';
+                wlData.color.wins++;
+                penaltyTracker.color = 0;
+            } else {
+                colorResult = 'LOSS';
+                wlData.color.losses++;
+                penaltyTracker.color++;
+            }
+            wlData.color.total++;
+
+            // Store results for box coloring
+            lastPredictionResults.sizeResult = sizeResult;
+            lastPredictionResults.colorResult = colorResult;
+
+            let numberResult;
+            if (pred.singleNumber === null) {
+                numberResult = 'SKIP';
+                wlData.number.skips++;
+            } else if (pred.singleNumber === actualNumber) {
+                numberResult = 'HIT';
+                wlData.number.hits++;
+            } else if (pred.alternates && pred.alternates.includes(actualNumber)) {
+                numberResult = 'CLOSE';
+                wlData.number.hits++;
+            } else {
+                numberResult = 'MISS';
+                wlData.number.misses++;
+            }
+            wlData.number.total++;
+
+            let overallResult;
+            if (numberResult === 'HIT' || numberResult === 'CLOSE') {
+                overallResult = 'WIN';
+                wlData.overall.wins++;
+            } else if (numberResult === 'SKIP') {
+                overallResult = 'SKIP';
+                wlData.overall.skips++;
+            } else {
+                overallResult = 'LOSS';
+                wlData.overall.losses++;
+            }
+            wlData.overall.total++;
+
+            pred.sizeResult = sizeResult;
+            pred.colorResult = colorResult;
+            pred.numberResult = numberResult;
+            pred.overallResult = overallResult;
+
+            wlData.history.unshift(pred);
+            state.currentPrediction.status = 'COMPLETED';
+
+            // Update box colors with new results
+            updateBoxColors();
+
+            wlRenderUI();
+        }
+
+        function wlRenderUI() {
+            const totalPlayed = wlData.overall.wins + wlData.overall.losses;
+            const winRate = totalPlayed > 0 ? Math.round((wlData.overall.wins / totalPlayed) * 100) : 0;
+            document.getElementById('win-rate-display').innerText = winRate + '% WR';
+
+            document.getElementById('size-wins').innerText = wlData.size.wins;
+            document.getElementById('size-losses').innerText = wlData.size.losses;
+            document.getElementById('size-skips').innerText = wlData.size.skips;
+            document.getElementById('size-total').innerText = wlData.size.total;
+
+            document.getElementById('color-wins').innerText = wlData.color.wins;
+            document.getElementById('color-losses').innerText = wlData.color.losses;
+            document.getElementById('color-skips').innerText = wlData.color.skips;
+            document.getElementById('color-total').innerText = wlData.color.total;
+
+            document.getElementById('num-hits').innerText = wlData.number.hits;
+            document.getElementById('num-misses').innerText = wlData.number.misses;
+            document.getElementById('num-skips').innerText = wlData.number.skips;
+            document.getElementById('num-total').innerText = wlData.number.total;
+
+            const listEl = document.getElementById('wl-history-list');
+
+            if (!wlData.history.length) {
+                listEl.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-chart-simple"></i>
+                        <span>No History</span>
+                    </div>`;
+                return;
+            }
+
+            listEl.innerHTML = wlData.history.map((item) => {
+                const isWin = item.overallResult === 'WIN';
+                const isSkip = item.overallResult === 'SKIP';
+                const d = new Date(item.time);
+                const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+                let itemClass;
+                if (isWin) {
+                    itemClass = 'item-win';
+                } else if (isSkip) {
+                    itemClass = 'item-skip';
+                } else {
+                    itemClass = 'item-loss';
+                }
+
+                const getPillClass = (res) => {
+                    if (res === 'WIN' || res === 'HIT' || res === 'CLOSE') return 'win';
+                    if (res === 'SKIP') return 'skip';
+                    return 'loss';
+                };
+
+                const predDisplay = item.singleNumber !== null 
+                    ? `<span class="wl-item-number">${item.singleNumber}</span>`
+                    : '<span class="wl-item-number empty">-</span>';
+
+                return `
+                <div class="wl-history-item ${itemClass}">
+                    <div class="wl-item-main">
+                        <div class="wl-item-top">
+                            <span class="wl-item-title">#${item.period.slice(-4)}</span>
+                            <div class="wl-pred-wrap">
+                                <span class="wl-pred-label">Pred:</span>
+                                ${predDisplay}
+                            </div>
+                            <div class="wl-results-row">
+                                <span class="wl-result-pill ${getPillClass(item.sizeResult)}">S</span>
+                                <span class="wl-result-pill ${getPillClass(item.colorResult)}">C</span>
+                                <span class="wl-result-pill ${getPillClass(item.numberResult)}">N</span>
+                            </div>
+                        </div>
+                        <div class="wl-item-bottom">
+                            <span class="wl-actual-label">Actual:</span>
+                            <div class="wl-actual-result">
+                                <span class="wl-actual-num">${item.actualNumber}</span>
+                                <span class="wl-actual-size" style="color:${item.actualSize === 'BIG' ? '#f59e0b' : '#3b82f6'}">${item.actualSize}</span>
+                                <span class="wl-actual-color" style="color:${item.actualColor === 'RED' ? '#ff3366' : '#00ff88'}">${item.actualColor}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="wl-item-time">${timeStr}</div>
+                </div>`;
+            }).join('');
+        }
+
+        function wlClearAll() {
+            if (!confirm('Clear all history?')) return;
+            wlData = {
+                size: { wins: 0, losses: 0, skips: 0, total: 0 },
+                color: { wins: 0, losses: 0, skips: 0, total: 0 },
+                number: { hits: 0, misses: 0, skips: 0, total: 0 },
+                overall: { wins: 0, losses: 0, skips: 0, total: 0 },
+                history: []
+            };
+            recentResults = [];
+            lastPredictionResults = { sizeResult: null, colorResult: null, sizePred: null, colorPred: null };
+            penaltyTracker = { size: 0, color: 0 };
+            updateRecentResultsList();
+            
+            // Reset box colors
+            const sizeBox = document.getElementById('sizeBox');
+            const colorBox = document.getElementById('colorBox');
+            sizeBox.classList.remove('size-win', 'size-loss');
+            colorBox.classList.remove('color-win-red', 'color-win-green', 'color-loss');
+            
+            wlRenderUI();
+        }
+
+        async function fetchData() {
+            try {
+                const res = await fetch(`${API}?pageNo=1&pageSize=20&t=${Date.now()}`);
+                const json = await res.json();
+
+                if (!json.data || !json.data.list || json.data.list.length === 0) {
+                    console.log('Invalid API response');
+                    return;
+                }
+
+                const list = json.data.list;
+                const latest = list[0];
+
+                if (!latest.issueNumber || !latest.number) {
+                    console.log('Missing issueNumber or number in latest result');
+                    return;
+                }
+
+                const currentIssue = latest.issueNumber;
+
+                if (state.lastFetchedIssue !== currentIssue) {
+                    if (state.period && state.currentPrediction && state.currentPrediction.status === 'PENDING') {
+                        const actualNum = parseInt(latest.number);
+                        const actualSize = getSize(actualNum);
+                        const actualColor = getColor(latest.color);
+                        updateHistory(actualSize, actualColor, actualNum);
+                    }
+
+                    const nextPeriod = (BigInt(currentIssue) + 1n).toString();
+                    state.period = nextPeriod;
+                    state.lastFetchedIssue = currentIssue;
+
+                    // Update compact top row period (NO # symbol)
+                    document.getElementById('periodDisplay').innerText = nextPeriod.slice(-6);
+
+                    // Reset loading states
+                    document.getElementById('sizeLoadingView').style.display = 'block';
+                    document.getElementById('sizeResultView').style.display = 'none';
+                    document.getElementById('colorLoadingView').style.display = 'block';
+                    document.getElementById('colorResultView').style.display = 'none';
+                    document.getElementById('targetLoadingView').style.display = 'block';
+                    document.getElementById('targetResultView').style.display = 'none';
+
+                    const analysis = processPrediction(list);
+                    if (analysis) {
+                        updateUI(analysis);
+                    }
+                }
+            } catch (e) { 
+                console.log('Fetch error:', e); 
+            }
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+            document.getElementById('page-' + tab).classList.add('active');
+            document.getElementById('tab-' + tab).classList.add('active');
+
+            if (tab === 'wl') wlRenderUI();
+        }
+
+        setInterval(fetchData, 3000);
+        fetchData();
+        wlRenderUI();
+    </script>
+</body>
+</html>
